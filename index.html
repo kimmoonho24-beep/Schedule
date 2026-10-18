@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>개밥 일정표</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;color:#0f172a;background:#f8fafc}
+*{box-sizing:border-box}body{margin:0;padding:16px;max-width:1000px;margin-inline:auto}
+header,.panel{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;margin-bottom:14px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-size:25px;margin:2px 0 5px}.sub,.muted{font-size:12px;color:#64748b}.eyebrow{font-size:11px;color:#1d4ed8;font-weight:800;letter-spacing:1px}
+button,input,select{font:inherit}button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:9px;padding:8px 11px}
+.primary{background:#1d4ed8;color:white;border-color:#1d4ed8}.field{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:8px;background:white;margin-top:5px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.stat{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:12px}.stat strong{display:block;font-size:21px;margin-top:3px}
+.monthbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.monthbar strong{font-size:18px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.weekday{text-align:center;font-size:12px;font-weight:700;color:#64748b;padding:7px 0}.day{min-height:82px;padding:5px 4px;text-align:left;overflow:hidden}.day.selected{outline:2px solid #2563eb;background:#eff6ff}.daynum{font-weight:750;font-size:13px}.sun{color:#e11d48}.sat{color:#2563eb}.tag{display:block;margin-top:3px;padding:2px 4px;border-radius:4px;background:#dbeafe;color:#1e40af;font-size:10px;overflow-wrap:anywhere}.tag.vac{background:#fee2e2;color:#991b1b}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.fieldlabel{font-size:12px;color:#475569}.subpanel{background:#f8fafc;border-radius:10px;padding:12px;margin-top:12px}.title{font-weight:800;margin-bottom:10px}.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #f1f5f9}.slot{border:1px solid #dbeafe;background:#eff6ff;border-radius:10px;padding:11px}.slot h3{font-size:13px;margin:0 0 6px}.chip{display:inline-block;border:1px solid #bfdbfe;border-radius:6px;background:white;padding:4px 7px;margin:3px 3px 0 0;font-size:12px}.pill{font-size:11px;background:#f1f5f9;padding:3px 7px;border-radius:99px}.alert{font-size:13px;margin-top:12px}.warning{color:#b91c1c;font-weight:700}.success{color:#15803d}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.hidden{display:none!important}.calendar-panel{transition:all .15s ease}.calendar-panel.fullscreen{position:fixed;inset:0;z-index:9999;margin:0;border-radius:0;overflow:auto;background:#f8fafc;padding:clamp(10px,2vw,24px);display:flex;flex-direction:column}.calendar-panel.fullscreen .cal{gap:clamp(4px,1vw,10px)}.calendar-panel.fullscreen .day{min-height:clamp(90px,13vh,150px);padding:clamp(5px,1vw,12px);font-size:clamp(14px,1.5vw,20px)}.calendar-panel.fullscreen .daynum{font-size:clamp(15px,2vw,23px)}.calendar-panel.fullscreen .tag{font-size:clamp(10px,1.2vw,15px);padding:3px 5px}.calendar-panel.fullscreen .weekday{font-size:clamp(13px,1.5vw,18px)}.calendar-panel.fullscreen .calendar-hint{margin-top:auto;padding-top:12px}.people-picker{margin-top:5px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;padding:8px;max-height:220px;overflow:auto}.person-option{display:flex;align-items:center;gap:9px;padding:9px 5px;border-bottom:1px solid #f1f5f9;font-size:14px}.person-option:last-child{border-bottom:0}.person-option input{width:18px;height:18px;flex-shrink:0}.person-option.all{font-weight:750;background:#eff6ff;border-radius:7px;padding:10px 6px;margin-bottom:4px}
+@media(max-width:500px){body{padding:9px}.panel,header{padding:11px}.day{min-height:64px;padding:3px 2px}.tag{font-size:9px;padding:2px}.grid2{grid-template-columns:1fr}.stats .stat{padding:9px}.stat strong{font-size:18px}h1{font-size:22px}}
+</style>
+</head>
+<body>
+<header><div><div class="eyebrow">UNIT SCHEDULE</div><h1>개밥 일정표</h1><div class="sub">월간 일정 · 참여 가능 인원 · 개밥 순번</div></div><button id="export">백업 내보내기</button></header>
+<section class="panel" id="cloudPanel"><div class="title">계정 로그인 · 가상 일정 동기화</div><p class="muted">테스트용 계정으로만 사용하세요. 로그인한 사용자는 같은 공유 일정표를 볼 수 있습니다. 실제 군 관련 정보는 입력하지 마세요.</p><div class="formgrid"><label class="fieldlabel">이메일<input id="cloudEmail" type="email" autocomplete="username" class="field" placeholder="test@example.com"></label><label class="fieldlabel">비밀번호<input id="cloudPassword" type="password" autocomplete="current-password" class="field" placeholder="6자 이상" minlength="6"></label></div><div class="actions"><button class="primary" id="cloudLogin">로그인</button><button id="cloudSignup">테스트 계정 만들기</button><button id="cloudLogout" class="hidden">로그아웃</button></div><div id="cloudStatus" class="alert" role="status">클라우드 연결 전 · 이 기기에만 저장됩니다.</div></section>
+<div class="stats"><div class="stat"><span class="muted">등록 인원</span><strong id="count">0명</strong></div><div class="stat"><span class="muted">선택 날짜 일정</span><strong id="eventCount">0건</strong></div><div class="stat"><span class="muted">참여 불가</span><strong id="offCount">0명</strong></div></div>
+<section class="panel calendar-panel" id="calendarPanel"><div class="monthbar"><button id="prev">← 이전 달</button><strong id="month"></strong><div style="display:flex;gap:6px;align-items:center"><button id="calendarFull" class="primary" aria-pressed="false">⛶ 전체화면</button><button id="next">다음 달 →</button></div></div><div class="cal" id="weekdays"></div><div class="cal" id="calendar"></div><p class="muted calendar-hint">날짜를 눌러 일정을 등록하거나 개밥 대상자를 확인하세요. 전체화면에서 나가려면 상단의 ‘전체화면 종료’를 누르세요.</p></section>
+<section class="panel"><div class="monthbar"><div class="title" id="selectedTitle">선택 날짜</div><button id="today">오늘</button></div><div id="dayEvents"></div>
+<div class="subpanel"><div class="title">＋ 일정 등록</div><form id="eventForm" class="formgrid">
+<label class="fieldlabel">종류<select id="type" class="field"><option>파견</option><option>차출</option><option>교육</option><option>휴가</option><option>직접입력</option></select></label>
+<div class="fieldlabel">대상 인원<div id="who" class="people-picker" role="group" aria-label="대상 인원 여러 명 선택"></div><span class="muted">이름 옆 체크박스로 여러 명을 선택할 수 있습니다. 전체 / 미지정 선택 시 개별 선택은 해제됩니다.</span></div>
+<label class="fieldlabel" style="grid-column:1/-1">일정 내용<input id="desc" class="field" placeholder="예: 외부 교육, 부대 파견"></label>
+<label class="fieldlabel">시작일<input id="start" type="date" class="field" required></label><label class="fieldlabel">종료일<input id="end" type="date" class="field" required></label>
+<label><input id="am" type="checkbox" checked> 오전 개밥 불가</label><label><input id="pm" type="checkbox" checked> 오후 개밥 불가</label>
+<button class="primary" style="grid-column:1/-1" type="submit">일정 등록하기</button></form><p class="muted">기간을 지정하면 해당 날짜에 일정이 표시됩니다.</p></div>
+<div class="title" style="margin-top:18px">🐕 개밥 대상 자동 계산</div><p class="muted">참여 가능한 인원 중 후임 순서대로 4명을 오전·오후 각각 표시합니다.</p>
+<div class="grid2"><div class="slot"><h3>☀️ 오전 개밥</h3><div id="amRoster"></div></div><div class="slot"><h3>🌙 오후 개밥</h3><div id="pmRoster"></div></div></div><div id="alert" class="alert"></div></section>
+<section class="panel"><div class="monthbar"><div class="title">인원 관리</div><span id="memberCount" class="pill">0명 등록</span></div>
+<form id="memberForm" class="formgrid"><label class="fieldlabel">기수<input id="cohort" class="field" placeholder="예: 912기" required></label><label class="fieldlabel">계급<select id="rank" class="field"><option value="0">이병</option><option value="1" selected>일병</option><option value="2">상병</option><option value="3">병장</option></select></label><label class="fieldlabel">호봉 / 세부 순서<input id="step" type="number" min="1" value="1" class="field" required></label><label class="fieldlabel">이름<input id="name" class="field" placeholder="이름" required></label><button class="primary" style="grid-column:1/-1">인원 추가</button></form>
+<div id="members" style="margin-top:10px"></div><p class="muted">정렬 기준: 이병 → 일병 → 상병 → 병장, 같은 계급은 호봉 → 기수 오름차순입니다. 실제 부대의 순번 규칙에 맞게 확인하세요.</p>
+<div class="actions"><button id="importBtn">백업 불러오기</button><input id="importFile" type="file" accept=".json,application/json" class="hidden"><button id="reset">이 기기 데이터 초기화</button></div>
+<p class="muted">로그인 전에는 이 브라우저에만 저장됩니다. 로그인 후에는 테스트용 공유 일정표와 동기화됩니다. 같은 공유 문서에 접근 가능한 계정은 모든 데이터를 볼 수 있으므로 가상 데이터만 사용하세요.</p></section>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+(()=>{
+const firebaseConfig={apiKey:"AIzaSyDKipGajMwJNiM3kjW5ff0h-9-cEAyP_VM",authDomain:"dogfeed-demo.firebaseapp.com",projectId:"dogfeed-demo",storageBucket:"dogfeed-demo.firebasestorage.app",messagingSenderId:"309600079511",appId:"1:309600079511:web:d1e12eb6e432b8aaf223d2"};
+let cloudAuth=null,cloudDb=null,cloudUser=null,cloudReady=false,cloudUnsubscribe=null,appStarted=false;
+const cloudStatus=(msg,kind='')=>{const el=document.getElementById('cloudStatus');if(el){el.textContent=msg;el.className='alert '+kind}};
+try{firebase.initializeApp(firebaseConfig);cloudAuth=firebase.auth();cloudDb=firebase.firestore();}catch(err){cloudStatus('Firebase 초기화 실패: '+err.message,'warning');}
+const $=id=>document.getElementById(id),KEY='dogfeed_demo_v2',ranks=['이병','일병','상병','병장'];
+let today=new Date(),view=new Date(today.getFullYear(),today.getMonth(),1),selected=iso(today),members=[],events=[],seq=1;
+try{let s=JSON.parse(localStorage.getItem(KEY)||'null');if(s){members=s.members||[];events=s.events||[];seq=s.seq||1}}catch(e){}
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function parse(s){let [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function save(){const data={members,events,seq};try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}if(cloudUser&&cloudReady&&cloudDb){cloudDb.collection('sharedSchedules').doc('demo').set({...data,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:cloudUser.uid}).then(()=>cloudStatus('연결됨 · 공유 일정 저장 완료','success')).catch(err=>cloudStatus('클라우드 저장 실패: '+err.message+' · 보안 규칙/호스팅 설정을 확인하세요.','warning'));}}
+function order(){return [...members].sort((a,b)=>a.rank-b.rank||a.step-b.step||String(a.cohort).localeCompare(String(b.cohort),'ko',{numeric:true})||a.id-b.id)}
+function onDay(day){return events.filter(e=>e.start<=day&&e.end>=day)}
+function eventWhoIds(e){if(e.who==='all')return 'all';if(Array.isArray(e.who))return e.who.map(Number);return [Number(e.who)];}
+function whoLabel(e){let ids=eventWhoIds(e);if(ids==='all')return '전체';let names=ids.map(id=>members.find(m=>m.id===id)?.name).filter(Boolean);return names.length?names.join(', '):'삭제된 인원';}
+function off(day,slot){let ids=new Set();onDay(day).forEach(e=>{if((slot==='am'&&e.am)||(slot==='pm'&&e.pm)){let targets=eventWhoIds(e);if(targets==='all')members.forEach(m=>ids.add(m.id));else targets.forEach(id=>ids.add(id))}});return ids}
+function roster(day,slot){let unavailable=off(day,slot),available=order().filter(m=>!unavailable.has(m.id));return {list:available.slice(0,4),total:available.length}}
+function render(){
+$('month').textContent=view.getFullYear()+'년 '+(view.getMonth()+1)+'월';
+$('weekdays').innerHTML=['일','월','화','수','목','금','토'].map((w,i)=>`<div class="weekday ${i===0?'sun':i===6?'sat':''}">${w}</div>`).join('');
+let first=new Date(view.getFullYear(),view.getMonth(),1),html='',offset=first.getDay(),days=new Date(view.getFullYear(),view.getMonth()+1,0).getDate();
+for(let i=0;i<offset;i++)html+='<div></div>';
+for(let d=1;d<=days;d++){let day=iso(new Date(view.getFullYear(),view.getMonth(),d)),ev=onDay(day),dow=parse(day).getDay();html+=`<button class="day ${day===selected?'selected':''}" data-day="${day}"><div class="daynum ${dow===0?'sun':dow===6?'sat':''}">${d}</div>`;
+ev.slice(0,2).forEach(e=>html+=`<span class="tag ${e.type==='휴가'?'vac':''}">${esc(e.type==='직접입력'?(e.desc||'기타'):e.type)}</span>`);
+if(ev.length>2)html+=`<span class="muted">+${ev.length-2}</span>`;html+='</button>'}
+$('calendar').innerHTML=html;$('calendar').querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{selected=b.dataset.day;render()});
+$('selectedTitle').textContent=(parse(selected).getMonth()+1)+'월 '+parse(selected).getDate()+'일 일정';
+$('start').value=selected;$('end').value=selected;
+let ev=onDay(selected);
+$('dayEvents').innerHTML=ev.length?ev.map(e=>`<div class="row"><div><span class="pill">${esc(e.type)}</span><div style="font-size:14px;font-weight:650;margin-top:4px">${esc(e.desc||e.type)}</div><div class="muted">${esc(e.start)} ~ ${esc(e.end)} · ${esc(whoLabel(e))} · ${e.am?'오전 제외 ':''}${e.pm?'오후 제외':''}</div></div><button data-de="${e.id}">삭제</button></div>`).join(''):'<p class="muted">등록된 일정이 없습니다.</p>';
+$('dayEvents').querySelectorAll('[data-de]').forEach(b=>b.onclick=()=>{events=events.filter(e=>e.id!==+b.dataset.de);save();render()});
+let am=roster(selected,'am'),pm=roster(selected,'pm');
+const rosterHtml=r=>r.list.length?r.list.map((m,i)=>`<span class="chip">${i+1}. ${esc(m.name)} <span class="muted">${esc(m.cohort)}</span></span>`).join(''):'<div class="muted">참여 가능한 인원이 없습니다.</div>';
+$('amRoster').innerHTML=rosterHtml(am);$('pmRoster').innerHTML=rosterHtml(pm);
+// 수정 사항: 선임 투입 여부를 언급하지 않고 인원 부족만 안내
+$('alert').innerHTML=(am.total<4||pm.total<4)?'<span class="warning">⚠️ 참여 가능 인원이 4명 미만입니다.</span>':`<span class="success">✓ 오전 ${am.total}명 · 오후 ${pm.total}명 참여 가능</span>`;
+$('count').textContent=members.length+'명';$('memberCount').textContent=members.length+'명 등록';$('eventCount').textContent=ev.length+'건';$('offCount').textContent=new Set([...off(selected,'am'),...off(selected,'pm')]).size+'명';
+const priorWho=Array.from($('who').querySelectorAll('input:checked')).map(o=>o.value);$('who').innerHTML=`<label class="person-option all"><input type="checkbox" value="all" ${priorWho.includes('all')?'checked':''}>전체 / 미지정</label>`+order().map(m=>`<label class="person-option"><input type="checkbox" value="${m.id}" ${priorWho.includes(String(m.id))?'checked':''}>${esc(m.name)} (${esc(m.cohort)})</label>`).join('');
+$('members').innerHTML=order().length?order().map((m,i)=>`<div class="row"><div><div style="font-weight:650;font-size:14px">${i+1}. ${esc(m.name)} <span class="pill">${ranks[m.rank]} ${m.step}호봉</span></div><div class="muted">${esc(m.cohort)}</div></div><button data-dm="${m.id}">삭제</button></div>`).join(''):'<p class="muted">인원을 등록하면 후임 순서대로 표시됩니다.</p>';
+$('members').querySelectorAll('[data-dm]').forEach(b=>b.onclick=()=>{if(confirm('이 인원을 삭제할까요?')){members=members.filter(m=>m.id!==+b.dataset.dm);save();render()}});
+}
+const calendarPanel=$('calendarPanel'),calendarFull=$('calendarFull');
+function setCalendarFull(on){calendarPanel.classList.toggle('fullscreen',on);calendarFull.textContent=on?'전체화면 종료':'⛶ 전체화면';calendarFull.setAttribute('aria-pressed',String(on));document.body.style.overflow=on?'hidden':'';}
+calendarFull.onclick=()=>setCalendarFull(!calendarPanel.classList.contains('fullscreen'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&calendarPanel.classList.contains('fullscreen'))setCalendarFull(false)});
+$('prev').onclick=()=>{view=new Date(view.getFullYear(),view.getMonth()-1,1);selected=iso(view);render()};
+$('next').onclick=()=>{view=new Date(view.getFullYear(),view.getMonth()+1,1);selected=iso(view);render()};
+$('today').onclick=()=>{view=new Date(today.getFullYear(),today.getMonth(),1);selected=iso(today);render()};
+$('memberForm').onsubmit=e=>{e.preventDefault();members.push({id:seq++,cohort:$('cohort').value.trim(),rank:+$('rank').value,step:+$('step').value,name:$('name').value.trim()});e.target.reset();$('rank').value='1';$('step').value='1';save();render()};
+$('who').onchange=e=>{if(e.target.type!=='checkbox')return;const checks=Array.from($('who').querySelectorAll('input[type=checkbox]'));const all=checks.find(c=>c.value==='all');if(e.target.value==='all'&&e.target.checked)checks.filter(c=>c!==all).forEach(c=>c.checked=false);else if(e.target.value!=='all'&&e.target.checked)all.checked=false};
+$('eventForm').onsubmit=e=>{e.preventDefault();let start=$('start').value,end=$('end').value;if(end<start){alert('종료일은 시작일과 같거나 이후여야 합니다.');return}if(!$('am').checked&&!$('pm').checked){alert('참여 불가 시간을 선택하세요.');return}let selectedWho=Array.from($('who').querySelectorAll('input:checked')).map(o=>o.value);if(!selectedWho.length)selectedWho=['all'];let who=selectedWho.includes('all')?'all':selectedWho.map(Number);events.push({id:seq++,type:$('type').value,desc:$('desc').value.trim(),who,start,end,am:$('am').checked,pm:$('pm').checked});save();render()};
+$('export').onclick=()=>{let blob=new Blob([JSON.stringify({members,events,seq},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='개밥일정-백업.json';a.click();URL.revokeObjectURL(a.href)};
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text());if(!Array.isArray(d.members)||!Array.isArray(d.events))throw Error();members=d.members;events=d.events;seq=d.seq||1;save();render();alert('백업을 불러왔습니다.')}catch(err){alert('올바른 백업 파일이 아닙니다.')}e.target.value=''};
+$('reset').onclick=()=>{if(confirm('이 기기에 저장된 모든 인원과 일정을 삭제할까요?')){members=[];events=[];seq=1;save();render()}};
+render();
+// Firebase 로그인 및 공유 문서 실시간 동기화. 원격 문서를 읽기 전에는 자동 업로드하지 않습니다.
+const emailEl=$('cloudEmail'),passEl=$('cloudPassword');
+async function cloudSignIn(create){if(!cloudAuth){cloudStatus('Firebase SDK가 로드되지 않았습니다. 인터넷 연결을 확인하세요.','warning');return}const email=emailEl.value.trim(),password=passEl.value;if(!email||password.length<6){cloudStatus('이메일과 6자 이상의 비밀번호를 입력하세요.','warning');return}try{cloudStatus(create?'테스트 계정 생성 중…':'로그인 중…');if(create)await cloudAuth.createUserWithEmailAndPassword(email,password);else await cloudAuth.signInWithEmailAndPassword(email,password);}catch(err){cloudStatus('인증 실패: '+err.message,'warning')}}
+$('cloudLogin').onclick=()=>cloudSignIn(false);$('cloudSignup').onclick=()=>cloudSignIn(true);$('cloudLogout').onclick=()=>cloudAuth&&cloudAuth.signOut();
+if(cloudAuth){cloudAuth.onAuthStateChanged(async user=>{cloudUser=user;cloudReady=false;if(cloudUnsubscribe){cloudUnsubscribe();cloudUnsubscribe=null} $('cloudLogout').classList.toggle('hidden',!user);$('cloudLogin').classList.toggle('hidden',!!user);$('cloudSignup').classList.toggle('hidden',!!user);if(!user){cloudStatus('로그아웃 상태 · 이 기기에만 저장됩니다.');return}cloudStatus('로그인됨 · 공유 일정표 연결 중…');const ref=cloudDb.collection('sharedSchedules').doc('demo');cloudUnsubscribe=ref.onSnapshot(async snap=>{if(snap.exists){const d=snap.data();members=Array.isArray(d.members)?d.members:[];events=Array.isArray(d.events)?d.events:[];seq=Number(d.seq)||1;try{localStorage.setItem(KEY,JSON.stringify({members,events,seq}))}catch(e){}cloudReady=true;render();cloudStatus('실시간 동기화 연결됨 · 가상 데이터만 사용하세요.','success')}else if(!cloudReady){cloudReady=true;try{await ref.set({members,events,seq,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:user.uid});cloudStatus('공유 일정표를 만들었습니다.','success')}catch(err){cloudReady=false;cloudStatus('Firestore 연결 실패: '+err.message+' · 보안 규칙과 호스팅 설정을 확인하세요.','warning')}}},err=>{cloudReady=false;cloudStatus('동기화 오류: '+err.message+' · Firestore 규칙 또는 인증 도메인을 확인하세요.','warning')})})}
+})();
+</script>
+</body></html>
